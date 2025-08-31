@@ -40,20 +40,20 @@ class BIN_Interaction_Flat(nn.Sequential):
 
         # specialized embedding with positional one
         self.demb = Embeddings(self.input_dim_drug, self.emb_size, self.max_d, self.dropout_rate)
-        self.pemb = Embeddings(self.input_dim_target, self.emb_size, self.max_p, self.dropout_rate)
+        # self.pemb = Embeddings(self.input_dim_target, self.emb_size, self.max_p, self.dropout_rate)
 
         self.d_encoder = Encoder_MultipleLayers(self.n_layer, self.hidden_size, self.intermediate_size,
                                                 self.num_attention_heads, self.attention_probs_dropout_prob,
                                                 self.hidden_dropout_prob)
-        self.p_encoder = Encoder_MultipleLayers(self.n_layer, self.hidden_size, self.intermediate_size,
-                                                self.num_attention_heads, self.attention_probs_dropout_prob,
-                                                self.hidden_dropout_prob)
+        # self.p_encoder = Encoder_MultipleLayers(self.n_layer, self.hidden_size, self.intermediate_size,
+                                                # self.num_attention_heads, self.attention_probs_dropout_prob,
+                                                # self.hidden_dropout_prob)
 
         self.w_j = nn.Linear(hidden_size, hidden_size)
-        self.w_i = nn.Linear(hidden_size, hidden_size)
+        # self.w_i = nn.Linear(hidden_size, hidden_size)
 
         self.prj_j = nn.Linear(hidden_size, hidden_size)
-        self.prj_i = nn.Linear(hidden_size, hidden_size)
+        # self.prj_i = nn.Linear(hidden_size, hidden_size)
 
     def forward(self, rels, d, p, d_mask, p_mask):
         ex_d_mask = d_mask.unsqueeze(1).unsqueeze(2)
@@ -64,18 +64,19 @@ class BIN_Interaction_Flat(nn.Sequential):
 
         # batch_size x seq_length x embed_size
         d_emb = self.demb(d)
-        p_emb = self.pemb(p)
+        p_emb = self.demb(p)
 
         # set output_all_encoded_layers be false, to obtain the last layer hidden states only...
         d_encoded_layers = self.d_encoder(d_emb.float(), ex_d_mask.float())
-        p_encoded_layers = self.p_encoder(p_emb.float(), ex_p_mask.float())
+        p_encoded_layers = self.d_encoder(p_emb.float(), ex_p_mask.float())
 
         d_aug1 = torch.sum(d_encoded_layers, dim=1)
         p_aug1 = torch.sum(p_encoded_layers, dim=1)
 
         d_aug = torch.unsqueeze(d_aug1, 1).repeat(1, self.max_p, 1)
         p_aug = torch.unsqueeze(p_aug1, 1).repeat(1, self.max_d, 1)
-
+        
+        
         h_scores = (self.w_i(d_encoded_layers) * self.prj_i(p_aug)).sum(-1)
         h_scores = torch.softmax(h_scores, dim=1)
         t_scores = (self.w_j(p_encoded_layers) * self.prj_j(d_aug)).sum(-1)

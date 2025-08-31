@@ -87,6 +87,7 @@ def main():
     parser.add_argument('--batch_size', type=int, default=256, help='batch size')
     parser.add_argument('--hidden_size', type=int, default=384, help='number of hidden size')
     parser.add_argument('--save_model', action='store_true', help='whether save model or not')
+    parser.add_argument('--load_model', type=str, default=None, help='path to pre-trained model to load')
     parser.add_argument('--lr', type=float, default=1e-3, help='learning rate')
     parser.add_argument('--weight_decay', type=float, default=5e-4, help='number of epochs')
     args = parser.parse_args()
@@ -101,6 +102,7 @@ def main():
         batch_size=args.batch_size,
         hidden_size=args.hidden_size,
         save_model=args.save_model,
+        load_model=args.load_model,
         lr=args.lr,
         weight_decay=args.weight_decay
     )
@@ -113,6 +115,7 @@ def main():
     batch_size = params.get('batch_size')
     hidden_size = params.get('hidden_size')
     save_model = params.get('save_model')
+    load_model = params.get('load_model')
     lr = params.get('lr')
     weight_decay = params.get('weight_decay')
     data_root = params.get('data_root')
@@ -124,6 +127,15 @@ def main():
 
     config = BIN_config_DBPE()
     model = LSFC(hidden_size, **config).cuda()
+
+    # 如果指定了预训练模型路径，则加载模型参数
+    if load_model and os.path.exists(load_model):
+        logger.info(f"Loading pre-trained model from {load_model}")
+        load_model_dict(model, load_model)
+        logger.info("Pre-trained model loaded successfully")
+    elif load_model:
+        logger.warning(f"Specified model path {load_model} does not exist, training from scratch")
+
 
     optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
     criterion = nn.BCEWithLogitsLoss()

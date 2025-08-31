@@ -68,6 +68,27 @@ def save_model_dict(model, model_dir, msg):
 
 
 def load_model_dict(model, ckpt):
+    """安全地加载预训练模型，只加载兼容的参数"""
+    checkpoint = torch.load(ckpt)
+    model_dict = model.state_dict()
+    
+    # 过滤出存在于当前模型中的参数
+    pretrained_dict = {k: v for k, v in checkpoint.items() if k in model_dict and model_dict[k].shape == v.shape}
+    
+    # 更新当前模型的参数字典
+    model_dict.update(pretrained_dict)
+    
+    # 加载更新后的参数
+    model.load_state_dict(model_dict)
+    
+    print(f"Loaded {len(pretrained_dict)} parameters from pretrained model")
+    missing_keys = set(checkpoint.keys()) - set(pretrained_dict.keys())
+    if missing_keys:
+        print(f"Skipped {len(missing_keys)} parameters not compatible with current model")
+
+
+def load_model_dict_strict(model, ckpt):
+    """严格加载模型（原始版本）"""
     model.load_state_dict(torch.load(ckpt))
 
 
