@@ -25,8 +25,8 @@ class MolecularPretrainModel(nn.Module):
         self.attention_probs_dropout_prob = config['attention_probs_dropout_prob']
         self.hidden_dropout_prob = config['hidden_dropout_prob']
         
-        # 分子性质预测任务数量（根据zinc数据调整）
-        self.num_properties = config.get('num_properties', 3)  # logP, qed, SAS
+        # 分子性质预测任务数量（根据pretrain_data调整）
+        self.num_properties = config.get('num_properties', 17)  # prop_0 到 prop_16，共17个性质
         
         # 核心编码器模块（与主模型完全相同）
         self.demb = Embeddings(self.input_dim_drug, self.emb_size, self.max_d, self.dropout_rate)
@@ -204,7 +204,7 @@ if __name__ == "__main__":
         'hidden_dropout_prob': 0.1,
         'dropout_rate': 0.1,
         'n_layer': 2,
-        'num_properties': 3,           # logP, qed, SAS
+        'num_properties': 17,           # prop_0 到 prop_16，共17个性质
         'use_mlm': True
     }
     

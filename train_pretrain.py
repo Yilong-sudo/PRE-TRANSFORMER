@@ -171,7 +171,7 @@ def test_pretrained_model(config):
 
 def main():
     parser = argparse.ArgumentParser(description='分子预训练')
-    parser.add_argument('--data_path', type=str, default='zinc_250k.csv', help='ZINC数据文件路径')
+    parser.add_argument('--data_path', type=str, default='pretrain_data.csv', help='预训练数据文件路径')
     parser.add_argument('--save_path', type=str, default='pretrained_molecular_model.pth', help='模型保存路径')
     parser.add_argument('--batch_size', type=int, default=64, help='批次大小')
     parser.add_argument('--epochs', type=int, default=100, help='训练轮数')
@@ -206,7 +206,7 @@ def main():
         'hidden_dropout_prob': 0.1,
         'dropout_rate': 0.1,
         'n_layer': 2,
-        'num_properties': 3,  # logP, qed, SAS
+        'num_properties': 17,  # prop_0 到 prop_16，共17个性质
         'use_mlm': True,
         
         # 训练配置

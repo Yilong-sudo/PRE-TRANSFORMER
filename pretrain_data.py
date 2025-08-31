@@ -51,18 +51,17 @@ class ZincPretrainDataset(Dataset):
         self.max_len = max_len
         self.mlm_probability = mlm_probability
         
-        # 根据实际zinc文件的列名调整
+        # 根据实际pretrain_data文件的列名调整
         available_columns = list(self.data.columns)
         print(f"可用的列: {available_columns}")
         
-        # 提取分子性质列（根据您的ZINC数据集调整）
+        # 提取分子性质列（prop_0 到 prop_16，共17个性质）
         self.property_columns = []
-        if 'logP' in available_columns:
-            self.property_columns.append('logP')
-        if 'qed' in available_columns:
-            self.property_columns.append('qed')
-        if 'SAS' in available_columns:
-            self.property_columns.append('SAS')
+        for col in available_columns:
+            if col.startswith('prop_'):
+                self.property_columns.append(col)
+        
+        print(f"检测到 {len(self.property_columns)} 个分子性质特征: {self.property_columns[:5]}{'...' if len(self.property_columns) > 5 else ''}")
         
         # 只保留有完整性质数据的样本
         self.data = self.data.dropna(subset=['smiles'] + self.property_columns)
@@ -178,7 +177,7 @@ def prepare_zinc_data(zinc_csv_path, output_path=None):
 
 if __name__ == "__main__":
     # 测试数据加载
-    csv_path = "zinc_250k.csv"  # 您的ZINC数据文件
+    csv_path = "pretrain_data.csv"  # 您的预训练数据文件
     
     try:
         # 预处理数据
